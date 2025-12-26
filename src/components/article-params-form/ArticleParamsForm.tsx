@@ -1,8 +1,9 @@
+/* eslint-disable prettier/prettier */
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 
 import styles from './ArticleParamsForm.module.scss';
-import { useState } from 'react';
+import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { Select } from 'src/ui/select';
 import {
 	fontFamilyOptions,
@@ -17,6 +18,7 @@ import clsx from 'clsx';
 import { Text } from 'src/ui/text';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
+import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
 
 export type ArticleParamsFormState = {
 	fontFamily: OptionType;
@@ -48,6 +50,24 @@ export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
 		defaultArticleState.contentWidth
 	);
 
+	const formRef = useRef<HTMLDivElement | null>(null);
+
+	//useOutsideClickClose({isOpen: isOpen, rootRef: formRef, onChange: () => setOpen(!isOpen)});
+
+	useEffect(() => {
+		const clickOutside = (event: Event) => {
+			if (formRef.current && !formRef.current.contains(event.target as Node)) {
+				setOpen(false);
+			}
+		};
+		if (isOpen) {
+			document.addEventListener('mousedown', clickOutside);
+		}
+		return (() => {
+			document.removeEventListener('mousedown', clickOutside);
+		});
+	}, [isOpen]);
+
 	return (
 		<>
 			<ArrowButton
@@ -57,7 +77,7 @@ export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
 				}}
 			/>
 			<aside
-				className={clsx(styles.container, { [styles.container_open]: isOpen })}>
+				className={clsx(styles.container, { [styles.container_open]: isOpen })} ref={formRef}>
 				<form
 					className={styles.form}
 					onSubmit={(e) => {
